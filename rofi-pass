@@ -321,6 +321,10 @@ generateOTP () {
 	clearUp
 }
 
+copyOTP() {
+	PASSWORD_STORE_DIR="${root}" pass otp "$selected_password"
+}
+
 copyUser () {
 	checkIfPass
 	printf '%s' "${stuff[${USERNAME_field}]}" | doClip
@@ -329,7 +333,14 @@ copyUser () {
 
 copyField () {
 	checkIfPass
-	printf '%s' "${stuff[${copyfield}]}" | doClip
+  local to_copy
+	case $copyfield in
+		"OTP") to_copy="$(copyOTP)" ;;
+		*) to_copy="${stuff[${copyfield}]}" ;;
+	esac
+
+	printf '%s' "$to_copy" | doClip
+	# printf '%s' "${stuff[${copyfield}]}" | doClip
 	clearUp
 }
 
@@ -511,28 +522,9 @@ mainMenu () {
 				fi
 			done < <(printf '%s\n' "${fields}")
 
-			if test "${stuff['autotype']+autotype}"; then
-				:
-			else
-				stuff["autotype"]="${USERNAME_field} :tab pass"
-			fi
 		fi
 	fi
 
-	if [[ -z "${stuff["${AUTOTYPE_field}"]}" ]]; then
-		if [[ -n $default_autotype ]]; then
-			stuff["${AUTOTYPE_field}"]="${default_autotype}"
-		fi
-	fi
-	if [[ -z "${stuff["${USERNAME_field}"]}" ]]; then
-		if [[ -n $default_user ]]; then
-			if [[ "$default_user" == ":filename" ]]; then
-				stuff["${USERNAME_field}"]="$(basename "$selected_password")"
-			else
-				stuff["${USERNAME_field}"]="${default_user}"
-			fi
-		fi
-	fi
 	pass_content="$(for key in "${!stuff[@]}"; do printf '%s\n' "${key}: ${stuff[$key]}"; done)"
 
 	# actions based on keypresses
